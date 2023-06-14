@@ -4,8 +4,8 @@ project(${PROJECT_NAME} VERSION 0.0.1)
 add_subdirectory(JUCE)
 
 
-# set(CMAKE_CXX_STANDARD 20)
-# set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # windows library location

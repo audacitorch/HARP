@@ -71,58 +71,75 @@ public:
         return true;
     }
 
+    auto json_helper(juce::var& object, juce::String key, juce::var value ){
+        if( object.isObject() ) {
+            object.getDynamicObject()->setProperty(key, value);
+        }
+    }
 
     bool process_bytes(const string& audioWavBytes, const string& outputFileName) const {
         // Create an HTTP client object
         try {
 
             
-            URL url(m_url + m_api_name);
+            // URL url(m_url + m_api_name);
+            URL url("https://abidlabs-whisper.hf.space/run/predict");
             // TODO : check the options in juce_URL.h (e.g. withFileToUpload, withPostData etc)
             StringPairArray responseHeaders;
             int statusCode = 0;
 
-            // an example
-            DynamicObject* obj = new DynamicObject();
-            obj->setProperty("grant_type","client_credentials");
-            obj->setProperty("client_id","id");
-            obj->setProperty("client_secret","secret");
-            var json (obj);
-            String s = JSON::toString(json);
 
-            // Directly feed the POST data into the URL object
-            if(!s.isEmpty()) url = url.withPOSTData(s);
-
-            // Create a JSON object with the request data
-            // var requestData = var::fromJSON("{" \
+            int file_size = audioWavBytes.size();
+            String audioWavBytesJuce = String(audioWavBytes.c_str());
+            
+            // A discussion  about building and parsing JSON in JUCE:
+            // One can figure out a much more elegant way than this. 
+            // String jsonString = "{" \
             //     "\"data\": [{" \
             //         "\"fn_index\": 4," \
             //         "\"data\": {" \
             //             "\"orig_name\": \"audio.wav\"," \
-            //             "\"data\": \"" + audioWavBytes + "\"," \
+            //             "\"data\": \"" + audioWavBytesJuce + "\"," \
             //             "\"is_file\": false," \
             //             "\"size\": " + String(file_size) + \
             //         "}" \
             //     "}]" \
-            // "}");
+            // "}";
+            String jsonString = "{" \
+                    "\"data\": [" \
+                        "{" \
+                            "\"name\": \"audio.wav\"," \
+                            "\"data\": \"data:audio/wav;base64," + audioWavBytesJuce + "\"" \
+                        "}" \
+                    "]" \
+                "}";
+            // Create a JSON object with the request data
+            // var requestData = JSON::parse(jsonString);
+
+            // Write the JSON object to a file for debugging purposes
+            // juce::File filePostBody("C:\\Users\\xribene\\AppData\\Local\\Temp\\postBody.txt");
+            juce::File filePostBody = juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("postBody.txt");
+            filePostBody.replaceWithText(jsonString, false);
+
+            // Directly feed the POST data into the URL object
+            if(!jsonString.isEmpty()) url = url.withPOSTData(jsonString);
 
             // Create the HTTP request and set the request method, headers, and body
             // ParameterHandling::inPostData
             std::unique_ptr<InputStream> requestStream(url.createInputStream (URL::InputStreamOptions (URL::ParameterHandling::inAddress)
-                                                                                        // .withConnectionTimeoutMs (1000)
-                                                                                        // .withNumRedirectsToFollow (0)
-                                                                                        .withExtraHeaders("Content-Type: application/json")
-                                                                                        .withHttpRequestCmd ("POST")
-                                                                                        // .withProgressCallback // can we use that to create a progress bar?
-                                                                                        .withStatusCode (&statusCode)
-                                                                                        // .withPOSTData (postData)
-                                                                                        .withResponseHeaders (&responseHeaders)
-                                                                                        // other options in juce_URL.h
-                                                                            )
-                                                    );
-            // MemoryBlock requestBody;
-            // JSON::writeToStream(requestBody, requestData);
-            // requestStream->write(requestBody.getData(), requestBody.getSize());
+                                    // .withConnectionTimeoutMs (1000)
+                                    // .withNumRedirectsToFollow (0)
+                                    .withExtraHeaders("Content-Type: application/json")
+                                    // We probably don't need that since we use withPOSTData above
+                                    .withHttpRequestCmd ("POST") 
+                                    // can we use that to create a progress bar?
+                                    // .withProgressCallback 
+                                    .withStatusCode (&statusCode)
+                                    // .withPOSTData (postData)
+                                    .withResponseHeaders (&responseHeaders)
+                                    // other options in juce_URL.h
+                                    )
+            );
 
             String result = requestStream->readEntireStreamAsString();
             String head = responseHeaders.getDescription().toStdString();
@@ -133,81 +150,11 @@ public:
                 return false;
             }
 
-            // High level JUCE code to write the result to a file
+            // High-level JUCE code to write the result to a file
             File outputFile(outputFileName);
             outputFile.replaceWithText(result, false);
-            // // Lower level version
-            // File outputFile(outputFileName);
-            // FileOutputStream outputStream(outputFile);
 
-            // if (outputStream.openedOk())
-            // {
-            //     outputStream << result;
-            //     outputStream.flush();
-            //     outputStream.close();
-            // }
-            // else
-            // {
-            //     DBG("Error: Failed to open file for writing.");
-            //     return false;
-            // }
-
-            // // Send the HTTP request and read the response
-            // std::unique_ptr<InputStream> responseStream(url.createInputStream(false));
-            // MemoryBlock responseBody;
-            // responseStream->readIntoMemoryBlock(responseBody, -1);
-
-            // // Process the response
-            // String responseString(responseBody.toString());
-            // // ... do something with the response ...
-
-
-
-
-
-            // http_client_config config;
-            // config.set_validate_certificates(false);
-
-            // http_client client(U(m_url+m_api_name), config);
-            // // DBG("Sending request to " + m_url + m_api_name);
-
-            // int file_size = audioWavBytes.size();
-
-            // // Create a JSON object with the request data
-            // web::json::value requestData;
-            // requestData[U("data")] = web::json::value::array({ web::json::value::object({
-            //     { U("fn_index"), web::json::value::number(4) },
-            //     { U("data"), web::json::value::object({
-            //             {U("orig_name"), web::json::value::string("audio.wav")},
-            //             {U("data"), web::json::value::string(audioWavBytes)},
-            //             {U("is_file"), web::json::value::boolean(false)},
-            //             {U("size"), web::json::value::number(file_size)},
-            //         }),
-            //     },
-            //     }) 
-            // });
-
-            // // Create the HTTP request and set the request URI
-            // http_request request(methods::POST);
-            // // request.set_request_uri(m_api_name);
-            // request.headers().set_content_type(U("application/json"));
-            // request.set_body(requestData);
-
-            // // Send the HTTP request and wait for the response
-            // pplx::task<http_response> response = client.request(request);
-            // response.wait();
-            
-            // if (response.get().status_code() != 200) {
-            //     DBG("Error: " + std::to_string(response.get().status_code()));
-            //     DBG("Error: " + response.get().extract_utf8string().get());
-            //     return false;
-            // }
-
-            // // Save the response data to a file
-            // std::ofstream outputFile(outputFileName);
-            // outputFile << response.get().extract_utf8string().get();
-            // outputFile.close();
-            // return true;
+            return true;
         } catch (const std::exception& e) {
             DBG("Error: " + string(e.what()));
             return false;
