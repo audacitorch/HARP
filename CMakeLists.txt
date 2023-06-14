@@ -4,8 +4,8 @@ project(${PROJECT_NAME} VERSION 0.0.1)
 add_subdirectory(JUCE)
 
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# set(CMAKE_CXX_STANDARD 20)
+# set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # windows library location
@@ -31,24 +31,24 @@ else()
 endif()
 
 # for huggingface requests: cpprestsdk
-find_package(OpenSSL REQUIRED)
-find_package(cpprestsdk REQUIRED)
+# find_package(OpenSSL REQUIRED)
+# find_package(cpprestsdk REQUIRED)
 
-IF (OPENSSL_FOUND)
-    include_directories(${OPENSSL_INCLUDE_DIR})
-    list(APPEND LIB_LIST ${OPENSSL_LIBRARIES})
-    message(STATUS "OpenSSL Version: ${OPENSSL_VERSION} ${OPENSSL_INCLUDE_DIR} ${OPENSSL_LIBRARIES}")
-ELSE() # Handle Apple + homebrew
-    message(STATUS "OPENSSL not found")
-    set(OPENSSL_ROOT_DIR /opt/homebrew/Cellar/openssl@3/3.1.0)
-    find_package(OpenSSL REQUIRED)
-    #set(OPENSSL_INCLUDE_DIR ${OPEN_SSL_ROOT_DIR}/include)
-    #set(OPENSSL_LIBRARY_DIRS ${OPEN_SSL_ROOT_DIR}/lib)
-    message(STATUS "!! Version: ${OPENSSL_VERSION} ${OPENSSL_INCLUDE_DIR} ${OPENSSL_LIBRARIES}")
-ENDIF()
+# IF (OPENSSL_FOUND)
+#     include_directories(${OPENSSL_INCLUDE_DIR})
+#     list(APPEND LIB_LIST ${OPENSSL_LIBRARIES})
+#     message(STATUS "OpenSSL Version: ${OPENSSL_VERSION} ${OPENSSL_INCLUDE_DIR} ${OPENSSL_LIBRARIES}")
+# ELSE() # Handle Apple + homebrew
+#     message(STATUS "OPENSSL not found")
+#     set(OPENSSL_ROOT_DIR /opt/homebrew/Cellar/openssl@3/3.1.0)
+#     find_package(OpenSSL REQUIRED)
+#     #set(OPENSSL_INCLUDE_DIR ${OPEN_SSL_ROOT_DIR}/include)
+#     #set(OPENSSL_LIBRARY_DIRS ${OPEN_SSL_ROOT_DIR}/lib)
+#     message(STATUS "!! Version: ${OPENSSL_VERSION} ${OPENSSL_INCLUDE_DIR} ${OPENSSL_LIBRARIES}")
+# ENDIF()
 
 
-add_subdirectory(tracktion_engine/modules)
+# add_subdirectory(tracktion_engine/modules)
 
 juce_add_plugin(AudioPluginExampleCMAKE64
     # VERSION ...                               # Set this if the plugin version is different to the project version
@@ -120,7 +120,7 @@ target_link_libraries(AudioPluginExampleCMAKE64
         juce::juce_graphics
         juce::juce_gui_basics
         juce::juce_gui_extra
-        tracktion::tracktion_engine
+        # tracktion::tracktion_engine
 
         # tractkion::tracktion_core
         # tracktion::3rd_party
@@ -132,8 +132,8 @@ target_link_libraries(AudioPluginExampleCMAKE64
         juce::juce_recommended_warning_flags
         ${TORCH_LIBRARIES}
 
-        cpprestsdk::cpprest
-        ${OPENSSL_LIBRARIES}
+        # cpprestsdk::cpprest
+        # ${OPENSSL_LIBRARIES}
         )
 # set_property(TARGET AudioPluginExampleCMAKE64 PROPERTY CXX_STANDARD 17)
 
