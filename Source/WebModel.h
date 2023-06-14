@@ -1,12 +1,12 @@
 #pragma once 
 
 #include <fstream>
-#include <cpprest/http_client.h>
-#include <cpprest/filestream.h>
+// #include <cpprest/http_client.h>
+// #include <cpprest/filestream.h>
 // #include <cpprest/base64.h>
 
-using namespace web::http;
-using namespace web::http::client;
+// using namespace web::http;
+// using namespace web::http::client;
 
 #include "Model.h"
 
@@ -35,27 +35,38 @@ public:
 
     // read audio file to a vector of bytes
     bool read_audio_file_to_base64(const string& filePath, string& output) const {
-        std::ifstream file(filePath, std::ios::binary);
 
-        if (!file) {
+        File file(filePath);
+        if (!file.exists())
+        {
+            DBG("Error: Fille doesn't exist.");
+            return false;
+        }
+
+        FileInputStream inputStream(file);
+        if (!inputStream.openedOk())
+        {
             // Handle file opening error
             DBG("Error: Failed to open file.");
             return false;
         }
 
         // get the file size
-        file.seekg(0, std::ios::end);
-        const std::streamsize fileSize = file.tellg();
-        file.seekg(0, std::ios::beg);
+        // use juce::int64 for cross-platform compatibility
+        const int64 fileSize = inputStream.getTotalLength();
 
-        std::vector<char> buffer(fileSize);
-        if (!file.read(buffer.data(), fileSize)) {
+        MemoryBlock buffer(fileSize);
+        if (inputStream.read(buffer.getData(), fileSize) != fileSize)
+        {
+            DBG("Failed to read file: " + filePath);
             std::cerr << "Failed to read file: " << filePath << std::endl;
             return false;
         }
 
-        std::vector<unsigned char> bytes(buffer.begin(), buffer.end());
-        output = utility::conversions::to_base64(bytes);
+        // Buffer to Base64
+        String base64String = Base64::toBase64(buffer);
+        // Juce::String to std::string
+        output = base64String.toStdString();
 
         return true;
     }
