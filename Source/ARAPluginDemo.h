@@ -87,7 +87,7 @@ public:
 
         // map<string, any> params {{"path", "/Users/hugo/projects/plugin_sandbox/reduceamp.pt"}};
         map<string, any> params {
-            {"url", string("http://127.0.0.1:7860")},
+            {"url", string("http://seethlord.cs.northwestern.edu:7860")},
             {"api_name", string("/api/predict/")}
         } ;
         if (!mModel.load(params)){ //change model here
