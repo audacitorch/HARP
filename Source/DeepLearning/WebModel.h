@@ -14,6 +14,7 @@
 
 #include "Model.h"
 #include "Wave2Wave.h"
+#include "Midi2Midi.h"
 
 #include "juce_core/juce_core.h"
 // #include "juce_data_structres/juce_data_structures.h"
@@ -374,7 +375,6 @@ class WebWave2Wave : public WebModel, public Wave2Wave {
 public:
   virtual void process(
     juce::AudioBuffer<float> *bufferToProcess, int sourceSampleRate, int dawSampleRate
-
   ) const override {
     // clear the cancel flag file
     m_cancel_flag_file.deleteFile();
@@ -470,7 +470,16 @@ public:
     m_cancel_flag_file.deleteFile();
     return;
   }
+};
 
+class WebMidi2Midi : public WebModel, public Midi2Midi {
+public:
+  virtual void process(
+    juce::MidiBuffer *bufferToProcess
+  ) const override {
+    // TODO
+    return;
+  }
 };
 
 // a timer that checks the status of the model and broadcasts a change if if there is one
