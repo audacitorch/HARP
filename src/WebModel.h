@@ -69,15 +69,15 @@ namespace{
   }
 }
 
-class WebWave2Wave : public Model {
+class WebModel : public Model {
 public:
-  WebWave2Wave() { // TODO: should be a singleton
+  WebModel() { // TODO: should be a singleton
     juce::File logFile = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory).getChildFile("HARP.log");
     logFile.deleteFile();
     m_status_flag_file.replaceWithText("Status.INITIALIZED");
   }
 
-  ~WebWave2Wave() {
+  ~WebModel() {
     // clean up flag files
     m_cancel_flag_file.deleteFile();
     m_status_flag_file.deleteFile();
@@ -115,7 +115,7 @@ public:
 
     std::string command = (
       scriptPath.getFullPathName().toStdString()
-      + " --mode get_ctrls"
+      + " --mode controls"
       + " --url " + m_url
       + " --output_path " + outputPath.getFullPathName().toStdString()
       + " >> " + tempLogFile.getFullPathName().toStdString()   // redirect stdout to the temp log file
@@ -264,7 +264,7 @@ public:
     m_cancel_flag_file.deleteFile();
 
     // make sure we're loaded
-    LogAndDBG("WebWave2Wave::process");
+    LogAndDBG("WebModel::process");
     if (!m_loaded) {
       throw std::runtime_error("Model not loaded");
     }
@@ -312,7 +312,7 @@ public:
 
     std::string command = (
         scriptPath.getFullPathName().toStdString()
-        + " --mode predict"
+        + " --mode process"
         + " --url " + m_url
         + " --output_path " + tempOutputFile.getFullPathName().toStdString()
         + " --ctrls_path " + tempCtrlsFile.getFullPathName().toStdString()
@@ -343,7 +343,7 @@ public:
     tempFile.deleteFile();
     tempOutputFile.deleteFile();
     tempCtrlsFile.deleteFile();
-    LogAndDBG("WebWave2Wave::process done");
+    LogAndDBG("WebModel::process done");
 
     // clear the cancel flag file
     m_cancel_flag_file.deleteFile();
@@ -450,10 +450,10 @@ private:
   }
 
   juce::File m_cancel_flag_file {
-    juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("webwave2wave_CANCEL")
+    juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("WebModel_CANCEL")
   };
   juce::File m_status_flag_file {
-    juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("webwave2wave_STATUS")
+    juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("WebModel_STATUS")
   };
   CtrlList m_ctrls;
 
@@ -465,7 +465,7 @@ private:
 class ModelStatusTimer : public juce::Timer,
                          public juce::ChangeBroadcaster {
 public:
-  ModelStatusTimer(std::shared_ptr<WebWave2Wave> model) : m_model(model) {
+  ModelStatusTimer(std::shared_ptr<WebModel> model) : m_model(model) {
   }
 
   void timerCallback() override {
@@ -480,6 +480,6 @@ public:
   }
 
 private:
-  std::shared_ptr<WebWave2Wave> m_model;
+  std::shared_ptr<WebModel> m_model;
   std::string m_last_status;
 };

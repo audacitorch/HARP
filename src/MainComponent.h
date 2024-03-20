@@ -513,7 +513,7 @@ public:
                             "Loading Error",
                             "An error occurred while loading the WebModel: TIMED OUT! Please check that the space is awake."
                         );
-                        model.reset(new WebWave2Wave());
+                        model.reset(new WebModel());
                         loadBroadcaster.sendChangeMessage();
                         saveButton.setEnabled(false);
                     }, 10000);
@@ -532,7 +532,7 @@ public:
                         "Loading Error",
                         String("An error occurred while loading the WebModel: ") + e.what()
                     );
-                    model.reset(new WebWave2Wave());
+                    model.reset(new WebModel());
                     loadBroadcaster.sendChangeMessage();
                     saveButton.setEnabled(false);
                 }
@@ -829,7 +829,7 @@ private:
     HyperlinkButton spaceUrlButton;
 
     // the model itself
-    std::shared_ptr<WebWave2Wave> model {new WebWave2Wave()};
+    std::shared_ptr<WebModel> model {new WebModel()};
 
     // if this PIP is running inside the demo runner, we'll use the shared device manager instead
     #ifndef JUCE_DEMO_RUNNER

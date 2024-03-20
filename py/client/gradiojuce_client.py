@@ -11,7 +11,7 @@ def handler_stop_signals(signum, frame):
     print("Stopping client...")
     if client is not None:
         # send a cancel request to the server
-        client.submit(api_name="/wav2wav-cancel")
+        client.submit(api_name="/cancel")
         print(f"Sent cancel request to {client.url}. Exiting...")
     else:
         print("Client was None. Exiting...")
@@ -33,12 +33,10 @@ def main(
     global client
     client = Client(url)
     
-    if mode == "get_ctrls":
+    if mode == "controls":
         print(f"Getting controls for {url}...")
         # ctrls will be a dict, instead of a path now
-        # ctrls = client.predict(api_name="/wav2wav-ctrls")
-        print(f"calling predict ")
-        ctrls = client.predict(api_name="/wav2wav-ctrls")
+        ctrls = client.predict(api_name="/controls")
 
         print(f"got ctrls: {ctrls}")
         # if it's a string, it's a filepath
@@ -50,14 +48,14 @@ def main(
             with open(output_path, "w") as f:
                 json.dump(ctrls, f)
 
-    elif mode == "predict":
+    elif mode == "process":
         assert ctrls_path is not None, "Please specify a ctrls path."
         with open(ctrls_path) as f:
             ctrls = json.load(f)
             assert isinstance(ctrls, list), "Controls must be a list of parameter values."
             print(f"loaded ctrls: {ctrls}")
         print(f"Predicting audio for {url}...")
-        job = client.submit(*ctrls, api_name="/wav2wav")
+        job = client.submit(*ctrls, api_name="/process")
 
         canceled = False
         while not job.done():
@@ -66,7 +64,7 @@ def main(
             if cancel_flag_path is not None:
                 if Path(cancel_flag_path).exists():
                     print("Cancel flag detected. Cancelling...")
-                    client.submit(api_name="/wav2wav-cancel")
+                    client.submit(api_name="/cancel")
                     canceled = True
                     Path(status_flag_path).write_text("Status.CANCELED")
                     break
@@ -92,7 +90,7 @@ def main(
             pass
 
     else:
-        raise ValueError("Invalid mode. Choose either 'get_ctrls' or 'predict'.")
+        raise ValueError("Invalid mode. Choose either 'controls' or 'process'.")
 
     print("gradiojuce_client done! :)")
 
@@ -100,7 +98,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process some arguments.')
     parser.add_argument('--url', required=True, help='The URL to connect to.')
     parser.add_argument('--output_path', required=True, help='The output path to save the file.')
-    parser.add_argument('--mode', required=True, choices=['get_ctrls', 'predict'], help='The mode of operation.')
+    parser.add_argument('--mode', required=True, choices=['controls', 'process'], help='The mode of operation.')
     parser.add_argument('--ctrls_path', help='The path to the controls file.')
     parser.add_argument('--cancel_flag_path', help='The path to the cancel flag file.')
     parser.add_argument('--status_flag_path', help='The path to the status flag file.')
