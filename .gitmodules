@@ -1,10 +1,11 @@
 [submodule "juce"]
-    path = JUCE
-    url = https://github.com/juce-framework/JUCE.git
-    branch = develop
+	path = JUCE
+	url = https://github.com/juce-framework/JUCE.git
+	branch = develop
 [submodule "py/pyharp"]
 	path = py/pyharp
-	url = https://github.com/audacitorch/pyharp@midi_support
+	url = https://github.com/audacitorch/pyharp
+	branch = midi_support
 [submodule "py/pyinstaller"]
 	path = py/pyinstaller
 	url = https://github.com/hugofloresgarcia/pyinstaller
