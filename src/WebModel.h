@@ -39,6 +39,9 @@ struct AudioInCtrl : public Ctrl {
   std::string value;
 };
 
+struct MidiInCtrl : public Ctrl {
+  std::string value;
+};
 
 struct NumberBoxCtrl : public Ctrl {
   double min;
@@ -238,6 +241,10 @@ public:
     m_card.name = jsonCard->getProperty("name").toString().toStdString();
     m_card.description = jsonCard->getProperty("description").toString().toStdString();
     m_card.author = jsonCard->getProperty("author").toString().toStdString();
+    m_card.midi_in = jsonCard->getProperty("midi_in").toString().toStdString();
+    m_card.midi_out = jsonCard->getProperty("midi_out").toString().toStdString();
+    // m_card.audio_in = jsonCard->getProperty("audio_in").toString().toStdString();
+    // m_card.audio_out = jsonCard->getProperty("audio_out").toString().toStdString();
 
     // tags is a list of str
     juce::Array<juce::var> *tags = jsonCard->getProperty("tags").getArray();
@@ -273,8 +280,25 @@ public:
           // get the ctrl type
           juce::String ctrl_type = ctrl["ctrl_type"].toString().toStdString();
 
-          // create the ctrl
-          if (ctrl_type == "slider") {
+          // For the first two, we are abusing the term control.
+          // They are actually the main inputs to the model (audio or midi) 
+          if (ctrl_type == "audio_in") {
+            auto audio_in = std::make_shared<AudioInCtrl>();
+            audio_in->label = ctrl["label"].toString().toStdString();
+
+            m_ctrls.push_back({audio_in->id, audio_in});
+            LogAndDBG("Audio In: " + audio_in->label + " added");
+          }
+          else if (ctrl_type == "midi_in") {
+            auto midi_in = std::make_shared<MidiInCtrl>();
+            midi_in->label = ctrl["label"].toString().toStdString();
+
+            m_ctrls.push_back({midi_in->id, midi_in});
+            LogAndDBG("MIDI In: " + midi_in->label + " added");
+          }
+          // The rest are the actual controls that map to hyperparameters
+          // of the model
+          else if (ctrl_type == "slider") {
             auto slider = std::make_shared<SliderCtrl>();
             slider->id = juce::Uuid();
             slider->label = ctrl["label"].toString().toStdString();
@@ -294,13 +318,6 @@ public:
 
             m_ctrls.push_back({text->id, text});
             LogAndDBG("Text: " + text->label + " added");
-          }
-          else if (ctrl_type == "audio_in") {
-            auto audio_in = std::make_shared<AudioInCtrl>();
-            audio_in->label = ctrl["label"].toString().toStdString();
-
-            m_ctrls.push_back({audio_in->id, audio_in});
-            LogAndDBG("Audio In: " + audio_in->label + " added");
           }
           else if (ctrl_type == "number_box") {
             auto number_box = std::make_shared<NumberBoxCtrl>();
@@ -342,7 +359,7 @@ public:
       throw std::runtime_error("Model not loaded");
     }
 
-    // a random string to append to the input/output.wav files
+    // a random string to append to the input/output.mid files
     // This is necessary because more than 1 playback regions
     // are processed at the same time.
     std::string randomString = juce::Uuid().toString().toStdString();
@@ -351,7 +368,7 @@ public:
     LogAndDBG("Saving buffer to file");
     juce::File tempFile =
         juce::File::getSpecialLocation(juce::File::tempDirectory)
-            .getChildFile("input_" + randomString + ".wav");
+            .getChildFile("input_" + randomString + ".mid");
     tempFile.deleteFile();
     // copy the file to a temp file
     filetoProcess.copyFileTo(tempFile);
@@ -359,7 +376,7 @@ public:
     // a tarrget output file
     juce::File tempOutputFile =
         juce::File::getSpecialLocation(juce::File::tempDirectory)
-            .getChildFile("output_" + randomString + ".wav");
+            .getChildFile("output_" + randomString + ".mid");
     tempOutputFile.deleteFile();
 
     // a ctrls file
@@ -516,6 +533,9 @@ private:
             // Audio in control, use audioInCtrl->value
             audioInCtrl->value = audioInputPath;
             jsonCtrlsArray.add(juce::var(audioInCtrl->value));
+        } else if (auto midiInCtrl = dynamic_cast<MidiInCtrl*>(ctrl.get())) {
+            midiInCtrl->value = audioInputPath;
+            jsonCtrlsArray.add(juce::var(midiInCtrl->value));
         } else {
             // Unsupported control type or missing implementation
             LogAndDBG("Unsupported control type or missing implementation for control with ID: " + ctrl->id.toString());

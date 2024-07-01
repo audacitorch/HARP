@@ -44,7 +44,7 @@ def main(
         print(f"calling predict ")
         # ctrls = client.predict(api_name="/wav2wav-ctrls")
 
-        job = client.submit(api_name="/wav2wav-ctrls")
+        job = client.submit(api_name="/controls")
         canceled = False
         t0 = time.time()
         while not job.done():
@@ -78,7 +78,7 @@ def main(
             assert isinstance(ctrls, list), "Controls must be a list of parameter values."
             print(f"loaded ctrls: {ctrls}")
         print(f"Predicting audio for {url}...")
-        job = client.submit(*ctrls, api_name="/wav2wav")
+        job = client.submit(*ctrls, api_name="/process")
 
         canceled = False
         while not job.done():
@@ -87,7 +87,7 @@ def main(
             if cancel_flag_path is not None:
                 if Path(cancel_flag_path).exists():
                     print("Cancel flag detected. Cancelling...")
-                    client.submit(api_name="/wav2wav-cancel")
+                    client.submit(api_name="/cancel")
                     canceled = True
                     Path(status_flag_path).write_text("Status.CANCELED")
                     break
